@@ -21,8 +21,6 @@ import {
   Sun,
   Cloud,
   Sparkles,
-  Download,
-  RefreshCw,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -108,168 +106,15 @@ const sparkleAnimation = {
   },
 }
 
-interface LeetCodeStats {
-  totalSolved: number
-  totalProblems: number
-  rank: string
-  submissions: number
-  easy: { solved: number; total: number }
-  medium: { solved: number; total: number }
-  hard: { solved: number; total: number }
-  languages: Array<{ name: string; problems: number }>
-  skills: Array<{ name: string; level: string; count: number }>
-  recentProblems: string[]
-  badges: string[]
-  lastUpdated: string
-}
-
 export default function Portfolio() {
   const [activeSection, setActiveSection] = useState("hero")
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
   const [scrollY, setScrollY] = useState(0)
-  const [leetcodeStats, setLeetcodeStats] = useState<LeetCodeStats | null>(null)
-  const [isLoadingStats, setIsLoadingStats] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
   const { scrollYProgress } = useScroll()
   const backgroundY = useTransform(scrollYProgress, [0, 1], ["0%", "100%"])
   const textY = useTransform(scrollYProgress, [0, 1], ["0%", "200%"])
-
-  // Fetch LeetCode stats dynamically
-  const fetchLeetCodeStats = async () => {
-    setIsLoadingStats(true)
-    try {
-      // Try multiple API endpoints for better reliability
-      const endpoints = [
-        `https://leetcode-api-faisalshohag.vercel.app/gullojuudaykiran`,
-        `https://alfa-leetcode-api.onrender.com/gullojuudaykiran`,
-        `https://leetcode.com/api/problems/all/`, // Fallback general endpoint
-      ]
-
-      let data = null
-      let success = false
-
-      // Try each endpoint until one works
-      for (const endpoint of endpoints) {
-        try {
-          const response = await fetch(endpoint, {
-            method: "GET",
-            headers: {
-              Accept: "application/json",
-              "Content-Type": "application/json",
-            },
-          })
-
-          if (response.ok) {
-            const result = await response.json()
-            if (result && (result.totalSolved || result.solvedProblem || result.num_solved)) {
-              data = result
-              success = true
-              break
-            }
-          }
-        } catch (err) {
-          console.log(`Failed to fetch from ${endpoint}:`, err)
-          continue
-        }
-      }
-
-      if (success && data) {
-        // Handle different API response formats
-        const totalSolved = data.totalSolved || data.solvedProblem || data.num_solved || 207
-        const totalProblems = data.totalQuestions || data.num_total || 3617
-        const easySolved = data.easySolved || data.easy || 117
-        const mediumSolved = data.mediumSolved || data.medium || 87
-        const hardSolved = data.hardSolved || data.hard || 3
-
-        setLeetcodeStats({
-          totalSolved,
-          totalProblems,
-          rank: data.ranking || data.rank || "626,651",
-          submissions: data.totalSubmissions || data.submission_count || 796,
-          easy: {
-            solved: easySolved,
-            total: data.totalEasy || 885,
-          },
-          medium: {
-            solved: mediumSolved,
-            total: data.totalMedium || 1881,
-          },
-          hard: {
-            solved: hardSolved,
-            total: data.totalHard || 851,
-          },
-          languages: data.languageStats
-            ? Object.entries(data.languageStats)
-                .map(([name, problems]) => ({
-                  name,
-                  problems: problems as number,
-                }))
-                .slice(0, 3)
-            : [
-                { name: "Python", problems: 117 },
-                { name: "Python3", problems: 89 },
-                { name: "C", problems: 4 },
-              ],
-          skills: [
-            { name: "Backtracking", level: "Advanced", count: 11 },
-            { name: "Dynamic Programming", level: "Advanced", count: 9 },
-            { name: "Divide and Conquer", level: "Advanced", count: 5 },
-            { name: "Hash Table", level: "Intermediate", count: 48 },
-            { name: "Math", level: "Intermediate", count: 39 },
-          ],
-          recentProblems: data.recentSubmissions?.slice(0, 5) || [
-            "First Missing Positive",
-            "Subarray Sum Equals K",
-            "Range Sum Query - Immutable",
-            "Lexicographical Numbers",
-            "Increasing Triplet Subsequence",
-          ],
-          badges: data.badges || ["50 Days Badge 2025"],
-          lastUpdated: new Date().toLocaleString(),
-        })
-      } else {
-        throw new Error("All API endpoints failed")
-      }
-    } catch (error) {
-      console.log("All LeetCode APIs failed, using fallback data:", error)
-      // Use enhanced fallback data with simulated dynamic updates
-      const now = new Date()
-      const dynamicBonus = Math.floor(now.getTime() / (1000 * 60 * 60 * 24)) % 5 // Changes daily
-
-      setLeetcodeStats({
-        totalSolved: 207 + dynamicBonus,
-        totalProblems: 3617,
-        rank: "626,651",
-        submissions: 796 + dynamicBonus * 2,
-        easy: { solved: 117 + Math.floor(dynamicBonus / 2), total: 885 },
-        medium: { solved: 87 + Math.floor(dynamicBonus / 3), total: 1881 },
-        hard: { solved: 3 + Math.floor(dynamicBonus / 5), total: 851 },
-        languages: [
-          { name: "Python", problems: 117 + dynamicBonus },
-          { name: "Python3", problems: 89 },
-          { name: "C", problems: 4 },
-        ],
-        skills: [
-          { name: "Backtracking", level: "Advanced", count: 11 },
-          { name: "Dynamic Programming", level: "Advanced", count: 9 },
-          { name: "Divide and Conquer", level: "Advanced", count: 5 },
-          { name: "Hash Table", level: "Intermediate", count: 48 },
-          { name: "Math", level: "Intermediate", count: 39 },
-        ],
-        recentProblems: [
-          "First Missing Positive",
-          "Subarray Sum Equals K",
-          "Range Sum Query - Immutable",
-          "Lexicographical Numbers",
-          "Increasing Triplet Subsequence",
-        ],
-        badges: ["50 Days Badge 2025", "Problem Solver"],
-        lastUpdated: `${new Date().toLocaleString()} (Offline Mode)`,
-      })
-    }
-    setIsLoadingStats(false)
-  }
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -283,19 +128,9 @@ export default function Portfolio() {
     window.addEventListener("mousemove", handleMouseMove)
     window.addEventListener("scroll", handleScroll)
 
-    // Fetch LeetCode stats on component mount with delay to avoid blocking
-    const timer = setTimeout(() => {
-      fetchLeetCodeStats()
-    }, 1000)
-
-    // Auto-refresh stats every 10 minutes (increased interval)
-    const interval = setInterval(fetchLeetCodeStats, 10 * 60 * 1000)
-
     return () => {
       window.removeEventListener("mousemove", handleMouseMove)
       window.removeEventListener("scroll", handleScroll)
-      clearTimeout(timer)
-      clearInterval(interval)
     }
   }, [])
 
@@ -313,46 +148,78 @@ export default function Portfolio() {
     ],
   }
 
+  const leetcodeStats = {
+    totalSolved: 207,
+    totalProblems: 3617,
+    rank: "626,651",
+    submissions: 796,
+    easy: { solved: 117, total: 885 },
+    medium: { solved: 87, total: 1881 },
+    hard: { solved: 3, total: 851 },
+    languages: [
+      { name: "Python", problems: 117 },
+      { name: "Python3", problems: 89 },
+      { name: "C", problems: 4 },
+    ],
+    skills: [
+      { name: "Backtracking", level: "Advanced", count: 11 },
+      { name: "Dynamic Programming", level: "Advanced", count: 9 },
+      { name: "Divide and Conquer", level: "Advanced", count: 5 },
+      { name: "Hash Table", level: "Intermediate", count: 48 },
+      { name: "Math", level: "Intermediate", count: 39 },
+    ],
+    recentProblems: [
+      "First Missing Positive",
+      "Subarray Sum Equals K",
+      "Range Sum Query - Immutable",
+      "Lexicographical Numbers",
+      "Increasing Triplet Subsequence",
+    ],
+    badges: ["50 Days Badge 2025"],
+  }
+
   const projects = [
-    {
-      title: "Website Access Blocker Application",
-      tech: "Python, Flask, Windows Firewall, Linux iptables",
-      period: "Jan 2025 – Mar 2025",
-      description:
-        "Engineered a cross-platform Flask web app to block websites via OS-level firewall rules, reducing access time to <2 seconds.",
-      highlights: [
-        "Integrated dynamic domain/IP resolution, enabling 100% accuracy in blocking both HTTP and HTTPS traffic",
-        "Implemented Windows (netsh) and Linux (iptables) compatibility, expanding usability to 2 major OS environments",
-        "Maintained persistent records of 50+ blocked sites using JSON storage for tracking and audit purposes",
-      ],
-    },
     {
       title: "Smart Surplus Food Distribution System",
       tech: "HTML, CSS, JavaScript",
-      period: "Aug 2024 – Dec 2024",
+      period: "Aug 2024 – Present",
       description:
-        "Developed a responsive platform that connected 15+ donors and orphanages, facilitating redistribution of 500+ kg of food.",
+        "Developed a dynamic, responsive frontend web application for efficient surplus food distribution across hostels, restaurants, and orphanages.",
       highlights: [
-        "Implemented a request-based matching system, improving fairness by 40% compared to first-come allocation",
-        "Leveraged local storage for queue management, achieving zero data loss during offline mode",
-        "Outlined backend integration with database + Google Maps API to cut delivery time by 25%",
+        "Real-time listing and tracking of food quantities",
+        "Clean, intuitive UI for reducing food waste",
+        "Centralized request-based interface",
+        "Local storage and JavaScript logic for distribution prioritization",
       ],
     },
     {
       title: "Health Cost Prediction for Cancer",
       tech: "Python, Machine Learning",
-      period: "May 2024 – Jul 2024",
-      description:
-        "Designed a regression pipeline predicting cancer treatment costs with an R² score of 0.85 using 1,000+ patient records.",
+      period: "May 2024",
+      description: "Built a regression model to predict cancer-related healthcare costs based on medical attributes.",
       highlights: [
-        "Performed data preprocessing (one-hot encoding, normalization), boosting accuracy by 15%",
-        "Visualized feature correlations using Seaborn and Matplotlib, reducing feature set by 20% without losing performance",
+        "Performed EDA using Pandas, Seaborn, and Matplotlib",
+        "Applied one-hot encoding and scaling",
+        "Achieved R² score of 0.85 with Linear Regression",
+        "Clear visuals and documented codebase",
+      ],
+    },
+    {
+      title: "Website Access Blocker Application",
+      tech: "Python, Flask, Windows Firewall, Linux iptables",
+      period: "Apr 2025",
+      description: "Created a Flask web app to manage domain/IP blocking via OS-level firewall rules.",
+      highlights: [
+        "Dynamic domain resolution support",
+        "Cross-platform compatibility (Linux & Windows)",
+        "JSON-based lightweight database",
+        "Future enhancements planned for authentication and scheduling",
       ],
     },
   ]
 
   const certifications = [
-    "Data Structures - In-Depth Training (60+ hrs practical coding)",
+    "Data Structures - In-Depth Training",
     "Linux Fundamentals - Coursera Specialization",
     "Computer Networks - Coursera Verified",
     "AWS Cloud Practitioner Foundations",
@@ -372,79 +239,6 @@ export default function Portfolio() {
   }
 
   const particles = generateParticles(20)
-
-  // Download resume function
-  const downloadResume = () => {
-    const resumeContent = `
-GULLOJU UDAY KIRAN
-+91 9959868138 | udaykiran83358@gmail.com | LinkedIn | GitHub | Leetcode | HackerRank
-
-EDUCATION
-SR University, Warangal, Telangana
-Bachelor of Technology in Computer Science (CGPA: 9.5/10)                    Oct 2022 – Present
-
-Narayana Junior College, Hyderabad, Telangana
-MPC (Maths, Physics, Chemistry) - 96.4%                                      Jun 2020 – Jun 2022
-
-SKILLS
-Languages: C, Python, Java, SQL, JavaScript, HTML, CSS
-Frameworks: Node.js, Flask (API), Django
-Developer Tools: Git, VS Code, Google Colab
-Libraries: pandas, NumPy, Matplotlib, TensorFlow
-Cloud: AWS
-Core Knowledge: Data Structures and Algorithms, Artificial Intelligence, Computer Networks, Operating Systems
-Strengths: Analytical problem-solving, backend development, rapid learning
-
-PROJECTS
-Website Access Blocker Application | Python, Flask, Windows Firewall, Linux iptables    Jan 2025 – Mar 2025
-• Engineered a cross-platform Flask web app to block websites via OS-level firewall rules, reducing access time to <2 seconds.
-• Integrated dynamic domain/IP resolution, enabling 100% accuracy in blocking both HTTP and HTTPS traffic.
-• Implemented Windows (netsh) and Linux (iptables) compatibility, expanding usability to 2 major OS environments.
-• Maintained persistent records of 50+ blocked sites using JSON storage for tracking and audit purposes.
-
-Smart Surplus Food Distribution System | HTML, CSS, JavaScript                          Aug 2024 – Dec 2024
-• Developed a responsive platform that connected 15+ donors and orphanages, facilitating redistribution of 500+ kg of food.
-• Implemented a request-based matching system, improving fairness by 40% compared to first-come allocation.
-• Leveraged local storage for queue management, achieving zero data loss during offline mode.
-• Outlined backend integration with database + Google Maps API to cut delivery time by 25%.
-
-Health Cost Prediction for Cancer | Python, Machine Learning                            May 2024 – Jul 2024
-• Designed a regression pipeline predicting cancer treatment costs with an R² score of 0.85 using 1,000+ patient records.
-• Performed data preprocessing (one-hot encoding, normalization), boosting accuracy by 15%.
-• Visualized feature correlations using Seaborn and Matplotlib, reducing feature set by 20% without losing performance.
-
-ACHIEVEMENTS AND CERTIFICATIONS
-Achievements
-• Secured 1st place in AD-War (Ad Design Competition) among 50+ teams, demonstrating creative and leadership skills.
-
-Certifications
-• Data Structures - In-Depth Training (60+ hrs practical coding)
-• Linux Fundamentals - Coursera Specialization
-• Computer Networks - Coursera Verified
-• AWS Cloud Practitioner Foundations
-• MongoDB Basics - NoSQL Certification
-• Theory of Computation
-
-CODING ACHIEVEMENTS (Live Stats)
-• LeetCode Problems Solved: ${leetcodeStats?.totalSolved || 207}/${leetcodeStats?.totalProblems || 3617}
-• Global Rank: ${leetcodeStats?.rank || "626,651"}
-• Total Submissions: ${leetcodeStats?.submissions || 796}
-• Easy: ${leetcodeStats?.easy.solved || 117}/${leetcodeStats?.easy.total || 885}
-• Medium: ${leetcodeStats?.medium.solved || 87}/${leetcodeStats?.medium.total || 1881}
-• Hard: ${leetcodeStats?.hard.solved || 3}/${leetcodeStats?.hard.total || 851}
-• Last Updated: ${leetcodeStats?.lastUpdated || new Date().toLocaleString()}
-    `.trim()
-
-    const blob = new Blob([resumeContent], { type: "text/plain" })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = "Gulloju_Uday_Kiran_Resume.txt"
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-  }
 
   return (
     <div
@@ -770,19 +564,6 @@ CODING ACHIEVEMENTS (Live Stats)
                 udaykiran83358@gmail.com
               </Button>
             </motion.div>
-            <motion.div variants={fadeInUp}>
-              <Button
-                onClick={downloadResume}
-                variant="outline"
-                size="lg"
-                className="border-purple-600 text-purple-600 hover:bg-purple-600 hover:text-white bg-transparent transition-all duration-300 hover:shadow-lg hover:shadow-purple-200"
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Download size={18} className="mr-2" />
-                Download Resume
-              </Button>
-            </motion.div>
           </motion.div>
 
           <motion.div
@@ -883,9 +664,8 @@ CODING ACHIEVEMENTS (Live Stats)
               viewport={{ once: true }}
               transition={{ delay: 0.3 }}
             >
-              Passionate Computer Science student with strong analytical problem-solving skills and expertise in backend
-              development. Currently maintaining a CGPA of 9.5/10 and looking for Software Development Engineer roles to
-              contribute to innovative projects.
+              Passionate Computer Science student with strong problem-solving skills and expertise in Data Structures &
+              Algorithms. Looking for Software Development Engineer roles to contribute to innovative projects.
             </motion.p>
           </motion.div>
 
@@ -946,7 +726,7 @@ CODING ACHIEVEMENTS (Live Stats)
         </div>
       </section>
 
-      {/* Dynamic LeetCode Achievements Section */}
+      {/* LeetCode Achievements Section */}
       <section id="leetcode" className="py-20 relative">
         <div className="container mx-auto px-6">
           <motion.div
@@ -956,354 +736,329 @@ CODING ACHIEVEMENTS (Live Stats)
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <div className="flex items-center justify-center gap-4 mb-4">
-              <h2 className="text-4xl font-bold text-gray-800">Coding Achievements</h2>
-              <motion.button
-                onClick={fetchLeetCodeStats}
-                disabled={isLoadingStats}
-                className="p-2 bg-green-100 hover:bg-green-200 rounded-full transition-colors"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                <motion.div
-                  animate={isLoadingStats ? { rotate: 360 } : {}}
-                  transition={{ duration: 1, repeat: isLoadingStats ? Number.POSITIVE_INFINITY : 0, ease: "linear" }}
-                >
-                  <RefreshCw size={20} className="text-green-600" />
-                </motion.div>
-              </motion.button>
-            </div>
-            <p className="text-xl text-gray-600">Live LeetCode Problem Solving Journey</p>
-            {leetcodeStats && <p className="text-sm text-gray-500 mt-2">Last updated: {leetcodeStats.lastUpdated}</p>}
+            <h2 className="text-4xl font-bold text-gray-800 mb-4">Coding Achievements</h2>
+            <p className="text-xl text-gray-600">LeetCode Problem Solving Journey</p>
           </motion.div>
 
-          {leetcodeStats && (
-            <>
-              {/* Stats Overview */}
-              <motion.div
-                className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12"
-                variants={staggerContainer}
-                initial="initial"
-                whileInView="animate"
-                viewport={{ once: true }}
-              >
-                <motion.div variants={fadeInUp}>
-                  <Card className="text-center border-green-200 hover:border-green-400 transition-all duration-300 hover:shadow-xl bg-white/80 backdrop-blur-sm">
-                    <CardContent className="pt-6">
+          {/* Stats Overview */}
+          <motion.div
+            className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12"
+            variants={staggerContainer}
+            initial="initial"
+            whileInView="animate"
+            viewport={{ once: true }}
+          >
+            <motion.div variants={fadeInUp}>
+              <Card className="text-center border-green-200 hover:border-green-400 transition-all duration-300 hover:shadow-xl bg-white/80 backdrop-blur-sm">
+                <CardContent className="pt-6">
+                  <motion.div
+                    className="text-3xl font-bold text-green-600 mb-2"
+                    animate={{ scale: [1, 1.1, 1] }}
+                    transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
+                  >
+                    {leetcodeStats.totalSolved}
+                  </motion.div>
+                  <p className="text-gray-600">Problems Solved</p>
+                  <p className="text-sm text-gray-500">out of {leetcodeStats.totalProblems.toLocaleString()}</p>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            <motion.div variants={fadeInUp}>
+              <Card className="text-center border-green-200 hover:border-green-400 transition-all duration-300 hover:shadow-xl bg-white/80 backdrop-blur-sm">
+                <CardContent className="pt-6">
+                  <motion.div
+                    className="text-3xl font-bold text-blue-600 mb-2"
+                    animate={{ scale: [1, 1.1, 1] }}
+                    transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY, delay: 0.5 }}
+                  >
+                    {leetcodeStats.rank}
+                  </motion.div>
+                  <p className="text-gray-600">Global Rank</p>
+                  <p className="text-sm text-gray-500">Worldwide</p>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            <motion.div variants={fadeInUp}>
+              <Card className="text-center border-green-200 hover:border-green-400 transition-all duration-300 hover:shadow-xl bg-white/80 backdrop-blur-sm">
+                <CardContent className="pt-6">
+                  <motion.div
+                    className="text-3xl font-bold text-purple-600 mb-2"
+                    animate={{ scale: [1, 1.1, 1] }}
+                    transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY, delay: 1 }}
+                  >
+                    {leetcodeStats.submissions}
+                  </motion.div>
+                  <p className="text-gray-600">Submissions</p>
+                  <p className="text-sm text-gray-500">Past Year</p>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            <motion.div variants={fadeInUp}>
+              <Card className="text-center border-green-200 hover:border-green-400 transition-all duration-300 hover:shadow-xl bg-white/80 backdrop-blur-sm">
+                <CardContent className="pt-6">
+                  <motion.div className="flex justify-center mb-2">
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 4, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
+                    >
+                      <Code size={32} className="text-orange-600" />
+                    </motion.div>
+                  </motion.div>
+                  <p className="text-gray-600">Active Coder</p>
+                  <p className="text-sm text-gray-500">Daily Practice</p>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </motion.div>
+
+          {/* Problem Difficulty Breakdown */}
+          <motion.div
+            className="grid md:grid-cols-3 gap-8 mb-12"
+            variants={staggerContainer}
+            initial="initial"
+            whileInView="animate"
+            viewport={{ once: true }}
+          >
+            <motion.div variants={fadeInUp}>
+              <Card className="border-green-200 hover:border-green-400 transition-all duration-300 hover:shadow-xl bg-white/80 backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle className="text-green-600 flex items-center justify-between">
+                    <span>Easy Problems</span>
+                    <Badge className="bg-green-100 text-green-800">
+                      {leetcodeStats.easy.solved}/{leetcodeStats.easy.total}
+                    </Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="relative">
+                    <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
                       <motion.div
-                        className="text-3xl font-bold text-green-600 mb-2"
-                        animate={{ scale: [1, 1.1, 1] }}
-                        transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
-                      >
-                        {leetcodeStats.totalSolved}
-                      </motion.div>
-                      <p className="text-gray-600">Problems Solved</p>
-                      <p className="text-sm text-gray-500">out of {leetcodeStats.totalProblems.toLocaleString()}</p>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-
-                <motion.div variants={fadeInUp}>
-                  <Card className="text-center border-green-200 hover:border-green-400 transition-all duration-300 hover:shadow-xl bg-white/80 backdrop-blur-sm">
-                    <CardContent className="pt-6">
-                      <motion.div
-                        className="text-3xl font-bold text-blue-600 mb-2"
-                        animate={{ scale: [1, 1.1, 1] }}
-                        transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY, delay: 0.5 }}
-                      >
-                        {leetcodeStats.rank}
-                      </motion.div>
-                      <p className="text-gray-600">Global Rank</p>
-                      <p className="text-sm text-gray-500">Worldwide</p>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-
-                <motion.div variants={fadeInUp}>
-                  <Card className="text-center border-green-200 hover:border-green-400 transition-all duration-300 hover:shadow-xl bg-white/80 backdrop-blur-sm">
-                    <CardContent className="pt-6">
-                      <motion.div
-                        className="text-3xl font-bold text-purple-600 mb-2"
-                        animate={{ scale: [1, 1.1, 1] }}
-                        transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY, delay: 1 }}
-                      >
-                        {leetcodeStats.submissions}
-                      </motion.div>
-                      <p className="text-gray-600">Submissions</p>
-                      <p className="text-sm text-gray-500">Past Year</p>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-
-                <motion.div variants={fadeInUp}>
-                  <Card className="text-center border-green-200 hover:border-green-400 transition-all duration-300 hover:shadow-xl bg-white/80 backdrop-blur-sm">
-                    <CardContent className="pt-6">
-                      <motion.div className="flex justify-center mb-2">
-                        <motion.div
-                          animate={{ rotate: 360 }}
-                          transition={{ duration: 4, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
-                        >
-                          <Code size={32} className="text-orange-600" />
-                        </motion.div>
-                      </motion.div>
-                      <p className="text-gray-600">Active Coder</p>
-                      <p className="text-sm text-gray-500">Daily Practice</p>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              </motion.div>
-
-              {/* Problem Difficulty Breakdown */}
-              <motion.div
-                className="grid md:grid-cols-3 gap-8 mb-12"
-                variants={staggerContainer}
-                initial="initial"
-                whileInView="animate"
-                viewport={{ once: true }}
-              >
-                <motion.div variants={fadeInUp}>
-                  <Card className="border-green-200 hover:border-green-400 transition-all duration-300 hover:shadow-xl bg-white/80 backdrop-blur-sm">
-                    <CardHeader>
-                      <CardTitle className="text-green-600 flex items-center justify-between">
-                        <span>Easy Problems</span>
-                        <Badge className="bg-green-100 text-green-800">
-                          {leetcodeStats.easy.solved}/{leetcodeStats.easy.total}
-                        </Badge>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="relative">
-                        <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
-                          <motion.div
-                            className="bg-green-500 h-3 rounded-full"
-                            initial={{ width: 0 }}
-                            whileInView={{ width: `${(leetcodeStats.easy.solved / leetcodeStats.easy.total) * 100}%` }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 1.5, ease: "easeOut" }}
-                          />
-                        </div>
-                        <p className="text-sm text-gray-600">
-                          {Math.round((leetcodeStats.easy.solved / leetcodeStats.easy.total) * 100)}% Complete
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-
-                <motion.div variants={fadeInUp}>
-                  <Card className="border-yellow-200 hover:border-yellow-400 transition-all duration-300 hover:shadow-xl bg-white/80 backdrop-blur-sm">
-                    <CardHeader>
-                      <CardTitle className="text-yellow-600 flex items-center justify-between">
-                        <span>Medium Problems</span>
-                        <Badge className="bg-yellow-100 text-yellow-800">
-                          {leetcodeStats.medium.solved}/{leetcodeStats.medium.total}
-                        </Badge>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="relative">
-                        <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
-                          <motion.div
-                            className="bg-yellow-500 h-3 rounded-full"
-                            initial={{ width: 0 }}
-                            whileInView={{
-                              width: `${(leetcodeStats.medium.solved / leetcodeStats.medium.total) * 100}%`,
-                            }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 1.5, ease: "easeOut", delay: 0.2 }}
-                          />
-                        </div>
-                        <p className="text-sm text-gray-600">
-                          {Math.round((leetcodeStats.medium.solved / leetcodeStats.medium.total) * 100)}% Complete
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-
-                <motion.div variants={fadeInUp}>
-                  <Card className="border-red-200 hover:border-red-400 transition-all duration-300 hover:shadow-xl bg-white/80 backdrop-blur-sm">
-                    <CardHeader>
-                      <CardTitle className="text-red-600 flex items-center justify-between">
-                        <span>Hard Problems</span>
-                        <Badge className="bg-red-100 text-red-800">
-                          {leetcodeStats.hard.solved}/{leetcodeStats.hard.total}
-                        </Badge>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="relative">
-                        <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
-                          <motion.div
-                            className="bg-red-500 h-3 rounded-full"
-                            initial={{ width: 0 }}
-                            whileInView={{ width: `${(leetcodeStats.hard.solved / leetcodeStats.hard.total) * 100}%` }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 1.5, ease: "easeOut", delay: 0.4 }}
-                          />
-                        </div>
-                        <p className="text-sm text-gray-600">
-                          {Math.round((leetcodeStats.hard.solved / leetcodeStats.hard.total) * 100)}% Complete
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              </motion.div>
-
-              {/* Languages and Skills */}
-              <motion.div
-                className="grid md:grid-cols-2 gap-8"
-                variants={staggerContainer}
-                initial="initial"
-                whileInView="animate"
-                viewport={{ once: true }}
-              >
-                <motion.div variants={fadeInUp}>
-                  <Card className="border-green-200 hover:border-green-400 transition-all duration-300 hover:shadow-xl bg-white/80 backdrop-blur-sm">
-                    <CardHeader>
-                      <CardTitle className="text-green-700 flex items-center">
-                        <Code size={20} className="mr-2" />
-                        Programming Languages
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        {leetcodeStats.languages.map((lang, index) => (
-                          <motion.div
-                            key={lang.name}
-                            className="flex items-center justify-between"
-                            initial={{ opacity: 0, x: -20 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            transition={{ delay: index * 0.1 }}
-                            viewport={{ once: true }}
-                          >
-                            <span className="font-medium text-gray-700">{lang.name}</span>
-                            <div className="flex items-center space-x-2">
-                              <div className="w-24 bg-gray-200 rounded-full h-2">
-                                <motion.div
-                                  className="bg-green-500 h-2 rounded-full"
-                                  initial={{ width: 0 }}
-                                  whileInView={{
-                                    width: `${(lang.problems / leetcodeStats.languages[0].problems) * 100}%`,
-                                  }}
-                                  viewport={{ once: true }}
-                                  transition={{ duration: 1, delay: index * 0.2 }}
-                                />
-                              </div>
-                              <span className="text-sm text-gray-600 w-8">{lang.problems}</span>
-                            </div>
-                          </motion.div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-
-                <motion.div variants={fadeInUp}>
-                  <Card className="border-green-200 hover:border-green-400 transition-all duration-300 hover:shadow-xl bg-white/80 backdrop-blur-sm">
-                    <CardHeader>
-                      <CardTitle className="text-green-700 flex items-center">
-                        <Star size={20} className="mr-2" />
-                        Algorithm Skills
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        {leetcodeStats.skills.map((skill, index) => (
-                          <motion.div
-                            key={skill.name}
-                            className="flex items-center justify-between"
-                            initial={{ opacity: 0, x: -20 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            transition={{ delay: index * 0.1 }}
-                            viewport={{ once: true }}
-                          >
-                            <div>
-                              <span className="font-medium text-gray-700">{skill.name}</span>
-                              <Badge
-                                variant="outline"
-                                className={`ml-2 text-xs ${
-                                  skill.level === "Advanced"
-                                    ? "border-purple-600 text-purple-600"
-                                    : "border-blue-600 text-blue-600"
-                                }`}
-                              >
-                                {skill.level}
-                              </Badge>
-                            </div>
-                            <span className="text-sm text-gray-600">+{skill.count}</span>
-                          </motion.div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              </motion.div>
-
-              {/* Recent Activity */}
-              <motion.div
-                className="mt-12"
-                initial={{ opacity: 0, y: 50 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6 }}
-              >
-                <Card className="border-green-200 hover:border-green-400 transition-all duration-300 hover:shadow-xl bg-white/80 backdrop-blur-sm">
-                  <CardHeader>
-                    <CardTitle className="text-green-700 flex items-center">
-                      <Sparkles size={20} className="mr-2" />
-                      Recent Problem Solving Activity
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {leetcodeStats.recentProblems.map((problem, index) => (
-                        <motion.div
-                          key={problem}
-                          className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg"
-                          initial={{ opacity: 0, scale: 0.9 }}
-                          whileInView={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: index * 0.1 }}
-                          viewport={{ once: true }}
-                          whileHover={{ scale: 1.02 }}
-                        >
-                          <motion.div
-                            animate={{ rotate: 360 }}
-                            transition={{ duration: 3, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
-                          >
-                            <Star size={16} className="text-green-500" />
-                          </motion.div>
-                          <span className="text-sm text-gray-700">{problem}</span>
-                        </motion.div>
-                      ))}
+                        className="bg-green-500 h-3 rounded-full"
+                        initial={{ width: 0 }}
+                        whileInView={{ width: `${(leetcodeStats.easy.solved / leetcodeStats.easy.total) * 100}%` }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 1.5, ease: "easeOut" }}
+                      />
                     </div>
+                    <p className="text-sm text-gray-600">
+                      {Math.round((leetcodeStats.easy.solved / leetcodeStats.easy.total) * 100)}% Complete
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
 
-                    {/* Badge Display */}
-                    <div className="mt-6 pt-6 border-t border-green-100">
-                      <h4 className="font-semibold text-gray-700 mb-3">Latest Achievements</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {leetcodeStats.badges.map((badge, index) => (
-                          <motion.div
-                            key={badge}
-                            initial={{ opacity: 0, scale: 0 }}
-                            whileInView={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: index * 0.2 }}
-                            viewport={{ once: true }}
-                            whileHover={{ scale: 1.1 }}
-                          >
-                            <Badge className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-3 py-1">
-                              🏆 {badge}
-                            </Badge>
-                          </motion.div>
-                        ))}
-                      </div>
+            <motion.div variants={fadeInUp}>
+              <Card className="border-yellow-200 hover:border-yellow-400 transition-all duration-300 hover:shadow-xl bg-white/80 backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle className="text-yellow-600 flex items-center justify-between">
+                    <span>Medium Problems</span>
+                    <Badge className="bg-yellow-100 text-yellow-800">
+                      {leetcodeStats.medium.solved}/{leetcodeStats.medium.total}
+                    </Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="relative">
+                    <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
+                      <motion.div
+                        className="bg-yellow-500 h-3 rounded-full"
+                        initial={{ width: 0 }}
+                        whileInView={{ width: `${(leetcodeStats.medium.solved / leetcodeStats.medium.total) * 100}%` }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 1.5, ease: "easeOut", delay: 0.2 }}
+                      />
                     </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            </>
-          )}
+                    <p className="text-sm text-gray-600">
+                      {Math.round((leetcodeStats.medium.solved / leetcodeStats.medium.total) * 100)}% Complete
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            <motion.div variants={fadeInUp}>
+              <Card className="border-red-200 hover:border-red-400 transition-all duration-300 hover:shadow-xl bg-white/80 backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle className="text-red-600 flex items-center justify-between">
+                    <span>Hard Problems</span>
+                    <Badge className="bg-red-100 text-red-800">
+                      {leetcodeStats.hard.solved}/{leetcodeStats.hard.total}
+                    </Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="relative">
+                    <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
+                      <motion.div
+                        className="bg-red-500 h-3 rounded-full"
+                        initial={{ width: 0 }}
+                        whileInView={{ width: `${(leetcodeStats.hard.solved / leetcodeStats.hard.total) * 100}%` }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 1.5, ease: "easeOut", delay: 0.4 }}
+                      />
+                    </div>
+                    <p className="text-sm text-gray-600">
+                      {Math.round((leetcodeStats.hard.solved / leetcodeStats.hard.total) * 100)}% Complete
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </motion.div>
+
+          {/* Languages and Skills */}
+          <motion.div
+            className="grid md:grid-cols-2 gap-8"
+            variants={staggerContainer}
+            initial="initial"
+            whileInView="animate"
+            viewport={{ once: true }}
+          >
+            <motion.div variants={fadeInUp}>
+              <Card className="border-green-200 hover:border-green-400 transition-all duration-300 hover:shadow-xl bg-white/80 backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle className="text-green-700 flex items-center">
+                    <Code size={20} className="mr-2" />
+                    Programming Languages
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {leetcodeStats.languages.map((lang, index) => (
+                      <motion.div
+                        key={lang.name}
+                        className="flex items-center justify-between"
+                        initial={{ opacity: 0, x: -20 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        viewport={{ once: true }}
+                      >
+                        <span className="font-medium text-gray-700">{lang.name}</span>
+                        <div className="flex items-center space-x-2">
+                          <div className="w-24 bg-gray-200 rounded-full h-2">
+                            <motion.div
+                              className="bg-green-500 h-2 rounded-full"
+                              initial={{ width: 0 }}
+                              whileInView={{ width: `${(lang.problems / leetcodeStats.languages[0].problems) * 100}%` }}
+                              viewport={{ once: true }}
+                              transition={{ duration: 1, delay: index * 0.2 }}
+                            />
+                          </div>
+                          <span className="text-sm text-gray-600 w-8">{lang.problems}</span>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            <motion.div variants={fadeInUp}>
+              <Card className="border-green-200 hover:border-green-400 transition-all duration-300 hover:shadow-xl bg-white/80 backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle className="text-green-700 flex items-center">
+                    <Star size={20} className="mr-2" />
+                    Algorithm Skills
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {leetcodeStats.skills.map((skill, index) => (
+                      <motion.div
+                        key={skill.name}
+                        className="flex items-center justify-between"
+                        initial={{ opacity: 0, x: -20 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        viewport={{ once: true }}
+                      >
+                        <div>
+                          <span className="font-medium text-gray-700">{skill.name}</span>
+                          <Badge
+                            variant="outline"
+                            className={`ml-2 text-xs ${
+                              skill.level === "Advanced"
+                                ? "border-purple-600 text-purple-600"
+                                : "border-blue-600 text-blue-600"
+                            }`}
+                          >
+                            {skill.level}
+                          </Badge>
+                        </div>
+                        <span className="text-sm text-gray-600">+{skill.count}</span>
+                      </motion.div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </motion.div>
+
+          {/* Recent Activity */}
+          <motion.div
+            className="mt-12"
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <Card className="border-green-200 hover:border-green-400 transition-all duration-300 hover:shadow-xl bg-white/80 backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle className="text-green-700 flex items-center">
+                  <Sparkles size={20} className="mr-2" />
+                  Recent Problem Solving Activity
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {leetcodeStats.recentProblems.map((problem, index) => (
+                    <motion.div
+                      key={problem}
+                      className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg"
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      whileInView={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: index * 0.1 }}
+                      viewport={{ once: true }}
+                      whileHover={{ scale: 1.02 }}
+                    >
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 3, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
+                      >
+                        <Star size={16} className="text-green-500" />
+                      </motion.div>
+                      <span className="text-sm text-gray-700">{problem}</span>
+                    </motion.div>
+                  ))}
+                </div>
+
+                {/* Badge Display */}
+                <div className="mt-6 pt-6 border-t border-green-100">
+                  <h4 className="font-semibold text-gray-700 mb-3">Latest Achievements</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {leetcodeStats.badges.map((badge, index) => (
+                      <motion.div
+                        key={badge}
+                        initial={{ opacity: 0, scale: 0 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: index * 0.2 }}
+                        viewport={{ once: true }}
+                        whileHover={{ scale: 1.1 }}
+                      >
+                        <Badge className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-3 py-1">
+                          🏆 {badge}
+                        </Badge>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
         </div>
       </section>
 
@@ -1348,7 +1103,6 @@ CODING ACHIEVEMENTS (Live Stats)
                         Bachelor of Technology in Computer Science
                       </CardTitle>
                       <CardDescription className="text-lg">SR University, Warangal, Telangana</CardDescription>
-                      <Badge className="mt-2 bg-green-100 text-green-800">CGPA: 9.5/10</Badge>
                     </div>
                     <motion.div whileHover={{ scale: 1.1 }}>
                       <Badge variant="outline" className="border-green-600 text-green-600">
@@ -1378,12 +1132,11 @@ CODING ACHIEVEMENTS (Live Stats)
                         >
                           <BookOpen size={20} className="mr-2" />
                         </motion.div>
-                        MPC (Maths, Physics, Chemistry)
+                        MPC Intermediate
                       </CardTitle>
                       <CardDescription className="text-lg">
                         Narayana Junior College, Hyderabad, Telangana
                       </CardDescription>
-                      <Badge className="mt-2 bg-blue-100 text-blue-800">96.4%</Badge>
                     </div>
                     <motion.div whileHover={{ scale: 1.1 }}>
                       <Badge variant="outline" className="border-green-600 text-green-600">
@@ -1530,8 +1283,7 @@ CODING ACHIEVEMENTS (Live Stats)
                     <div>
                       <h4 className="font-semibold text-gray-800">AD-War Campaign Winner</h4>
                       <p className="text-gray-600">
-                        Secured 1st place in AD-War (Ad Design Competition) among 50+ teams, demonstrating creative and
-                        leadership skills.
+                        Led and won an ad design competition, showcasing strong creative and leadership skills.
                       </p>
                     </div>
                   </motion.div>
@@ -1689,7 +1441,7 @@ CODING ACHIEVEMENTS (Live Stats)
         </div>
       </section>
 
-      {/* Clean Footer */}
+      {/* Enhanced Footer */}
       <footer className="py-8 bg-gray-900 text-white text-center relative">
         <motion.div
           initial={{ opacity: 0 }}
